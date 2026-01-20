@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Shravan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body{margin:0;font-family:'Poppins',sans-serif;background:#fbf7f2;height:100vh;display:flex;flex-direction:column;}
+header{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 10px 10px;position:relative;}
+.app-icon{width:140px;mix-blend-mode:multiply;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));margin-bottom:6px;}
+header h1{font-family:"Times New Roman",Times,serif;font-size:42px;color:#8b5e3c;margin:0;}
+.new-chat{position:absolute;left:20px;top:25px;}
+.new-chat button{font-size:16px;padding:8px 18px;border:none;border-radius:20px;background:#588157;color:white;}
+.lang-select{text-align:center;margin-top:10px;}
+select{font-size:18px;padding:6px 14px;border-radius:10px;border:1px solid #9c6644;}
+.main-area{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
+.assistant-container{width:90%;max-width:1100px;background:#fff;border-radius:30px;display:flex;padding:30px;gap:30px;}
+.voice-section{flex:1;display:flex;flex-direction:column;align-items:center;}
+.instruction{font-size:18px;color:#6c584c;margin-bottom:15px;}
+.hidden{display:none;}
+.voice-box{width:100%;max-width:420px;background:#fff;border-radius:40px;padding:18px;display:flex;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,0.12);}
+.voice-box button{width:70px;height:70px;border-radius:50%;background:#9c6644;color:white;font-size:32px;}
+.chat-area{width:100%;margin-top:20px;display:flex;flex-direction:column;max-height:260px;overflow-y:auto;}
+.user-msg{align-self:flex-end;background:#2563eb;color:white;padding:14px;border-radius:18px;margin:6px;}
+.bot-msg{align-self:center;background:white;padding:16px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,0.12);margin:6px;white-space:pre-line;}
+.image-section{flex:1;display:flex;justify-content:center;}
+.image-section img{width:100%;max-width:320px;}
+.repeat-btn{
+  margin-top:10px;
+  padding:10px 20px;
+  border:none;
+  border-radius:20px;
+  background:#8b5e3c;
+  color:white;
+  font-size:16px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <img src="r.jpeg" class="app-icon">
+  <div class="new-chat"><button onclick="newChat()">➕ New Chat</button></div>
+  <h1>Shravan</h1>
+</header>
+
+<div class="lang-select">
+<select id="language">
+<option value="en-IN">English</option>
+<option value="hi-IN">Hindi</option>
+<option value="mr-IN">Marathi</option>
+</select>
+</div>
+
+<div class="main-area">
+<div class="assistant-container">
+<div class="voice-section">
+<div class="instruction" id="instruction">Tap the microphone and speak slowly</div>
+
+<div class="voice-box">
+<button id="micBtn" onclick="toggleMic()">🎤</button>
+</div>
+
+<button class="repeat-btn" onclick="repeatLast()">🔁 Repeat</button>
+
+<div class="chat-area" id="chatArea"></div>
+</div>
+
+<div class="image-section">
+<img src="WhatsApp Image 2026-01-12 at 6.26.02 PM.jpeg">
+</div>
+</div>
+</div>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+let isRecording=false;
+let selectedLang="en-IN";
+let voices=[];
+let greeted=false;
+let currentContext=null;
+let lastBotMessage="";
+
+speechSynthesis.onvoiceschanged=()=>voices=speechSynthesis.getVoices();
+
+const micBtn=document.getElementById("micBtn");
+const instruction=document.getElementById("instruction");
+const chatArea=document.getElementById("chatArea");
+
+/* 🧠 KNOWLEDGE BASE (UNCHANGED) */
+const QA={
+
+hello:{
+"en-IN":"Hello. How may I help you?",
+"hi-IN":"नमस्ते। मैं आपकी कैसे मदद कर सकता हूँ?",
+"mr-IN":"नमस्कार। मी तुमची कशी मदत करू शकतो?"
+},
+
+camera:{
+"en-IN":"To click a photo:\n1. Open the Camera app.\n2. Hold the phone steady.\n3. Point the camera.\n4. Tap the round button.",
+"hi-IN":"फोटो लेने के लिए:\n1. कैमरा खोलें।\n2. फोन स्थिर रखें।\n3. कैमरा सामने रखें।\n4. गोल बटन दबाएँ।",
+"mr-IN":"फोटो काढण्यासाठी:\n1. कॅमेरा उघडा.\n2. फोन स्थिर धरा.\n3. कॅमेरा समोर ठेवा.\n4. गोल बटण दाबा."
+},
+
+gallery:{
+"en-IN":"To see your photos:\n1. Open Gallery.\n2. Photos are saved by date.\n3. Tap to view.",
+"hi-IN":"फोटो देखने के लिए:\n1. गैलरी खोलें।\n2. फोटो तारीख से मिलेंगी।\n3. टैप करें।",
+"mr-IN":"फोटो पाहण्यासाठी:\n1. गॅलरी उघडा.\n2. फोटो तारखेप्रमाणे असतात.\n3. टॅप करा."
+},
+
+videocall:{
+"en-IN":"To make a video call:\n1. Open WhatsApp.\n2. Open contact.\n3. Tap video icon.",
+"hi-IN":"वीडियो कॉल करने के लिए:\n1. व्हाट्सऐप खोलें।\n2. संपर्क खोलें।\n3. वीडियो आइकन दबाएँ।",
+"mr-IN":"व्हिडिओ कॉलसाठी:\n1. व्हॉट्सॲप उघडा.\n2. संपर्क उघडा.\n3. व्हिडिओ चिन्ह दाबा."
+},
+
+whatsapp:{
+"en-IN":"To send photo on WhatsApp:\n1. Open WhatsApp.\n2. Open chat.\n3. Tap clip icon.\n4. Choose Gallery.\n5. Send.",
+"hi-IN":"व्हाट्सऐप पर फोटो भेजने के लिए:\n1. व्हाट्सऐप खोलें।\n2. चैट खोलें।\n3. क्लिप दबाएँ।\n4. गैलरी चुनें।\n5. भेजें।",
+"mr-IN":"व्हॉट्सॲपवर फोटो पाठवण्यासाठी:\n1. व्हॉट्सॲप उघडा.\n2. चॅट उघडा.\n3. क्लिप दाबा.\n4. गॅलरी निवडा.\n5. पाठवा."
+},
+
+atm:{
+"en-IN":"ATM help options:\n1. Forgot PIN\n2. Card blocked\n3. Cash not received",
+"hi-IN":"ATM मदत:\n1. पिन विसरलात\n2. कार्ड ब्लॉक\n3. पैसे मिळाले नाहीत",
+"mr-IN":"ATM मदत:\n1. पिन विसरलात\n2. कार्ड ब्लॉक\n3. पैसे मिळाले नाहीत"
+},
+
+atmPin:{
+"en-IN":"ATM PIN reset:\n1. Visit bank.\n2. Carry Aadhaar.\n3. Reset PIN.",
+"hi-IN":"ATM पिन रीसेट:\n1. बैंक जाएँ।\n2. आधार लें।\n3. पिन रीसेट करें।",
+"mr-IN":"ATM पिन रीसेट:\n1. बँकेत जा.\n2. आधार घ्या.\n3. पिन रीसेट करा."
+},
+
+atmCard:{
+"en-IN":"ATM card blocked:\n1. Visit bank.\n2. Show ID.\n3. Card will start.",
+"hi-IN":"ATM कार्ड ब्लॉक:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. कार्ड चालू होगा।",
+"mr-IN":"ATM कार्ड ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. कार्ड सुरू होईल."
+},
+
+atmCash:{
+"en-IN":"Cash not received:\n1. Check SMS.\n2. Wait 24 hours.\n3. Amount will credit.",
+"hi-IN":"पैसे नहीं मिले:\n1. SMS देखें।\n2. 24 घंटे रुकें।\n3. पैसे आएँगे।",
+"mr-IN":"पैसे मिळाले नाहीत:\n1. SMS तपासा.\n2. 24 तास थांबा.\n3. पैसे येतील."
+},
+
+bank:{
+"en-IN":"Bank help:\n1. Account blocked\n2. Pension not credited",
+"hi-IN":"बैंक मदत:\n1. खाता बंद\n2. पेंशन नहीं आई",
+"mr-IN":"बँक मदत:\n1. खाते ब्लॉक\n2. पेन्शन नाही"
+},
+
+bankAccount:{
+"en-IN":"Account blocked:\n1. Visit bank.\n2. Show ID.\n3. Account activated.",
+"hi-IN":"खाता बंद:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. खाता चालू होगा।",
+"mr-IN":"खाते ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. खाते सुरू होईल."
+},
+
+bankPension:{
+"en-IN":"Pension not credited:\n1. Check passbook.\n2. Visit bank.",
+"hi-IN":"पेंशन नहीं आई:\n1. पासबुक देखें।\n2. बैंक जाएँ।",
+"mr-IN":"पेन्शन नाही:\n1. पासबुक तपासा.\n2. बँकेत जा."
+}
+
+};
+
+function toggleMic(){
+selectedLang=document.getElementById("language").value;
+recognition.lang=selectedLang;
+if(!isRecording){
+isRecording=true;
+micBtn.style.background="#000";
+instruction.classList.add("hidden");
+recognition.start();
+}else{
+isRecording=false;
+micBtn.style.background="#9c6644";
+recognition.stop();
+}
+}
+
+recognition.onresult=e=>{
+const text=e.results[0][0].transcript.toLowerCase();
+showUser(text);
+respond(text);
+};
+
+function respond(text){
+let reply="";
+
+if(!greeted){
+reply=QA.hello[selectedLang];
+greeted=true;
+}
+else if(currentContext==="atm"){
+if(text.match(/pin|पिन/)) reply=QA.atmPin[selectedLang];
+else if(text.match(/card|कार्ड/)) reply=QA.atmCard[selectedLang];
+else if(text.match(/cash|पैसे/)) reply=QA.atmCash[selectedLang];
+currentContext=null;
+}
+else if(currentContext==="bank"){
+if(text.match(/account|खाता|खाते/)) reply=QA.bankAccount[selectedLang];
+else if(text.match(/pension|पेन्शन/)) reply=QA.bankPension[selectedLang];
+currentContext=null;
+}
+else if(text.match(/camera|photo|फोटो/)){
+reply=QA.camera[selectedLang];
+}
+else if(text.match(/gallery|गैलरी/)){
+reply=QA.gallery[selectedLang];
+}
+else if(text.match(/video|व्हिडिओ/)){
+reply=QA.videocall[selectedLang];
+}
+else if(text.match(/whatsapp|व्हाट्सॲप/)){
+reply=QA.whatsapp[selectedLang];
+}
+else if(text.match(/atm|एटीएम/)){
+reply=QA.atm[selectedLang];
+currentContext="atm";
+}
+else if(text.match(/bank|बैंक|बँक/)){
+reply=QA.bank[selectedLang];
+currentContext="bank";
+}
+else{
+reply=QA.hello[selectedLang];
+}
+
+setTimeout(()=>{
+showBot(reply);
+lastBotMessage = reply;
+speak(reply);
+},500);
+}
+
+function speak(text){
+const u=new SpeechSynthesisUtterance(text);
+u.lang=selectedLang;
+speechSynthesis.cancel();
+speechSynthesis.speak(u);
+}
+
+function repeatLast(){
+if(lastBotMessage){
+speak(lastBotMessage);
+}
+}
+
+function showUser(t){chatArea.innerHTML+=`<div class="user-msg">${t}</div>`;}
+function showBot(t){chatArea.innerHTML+=`<div class="bot-msg">${t}</div>`;}
+function newChat(){chatArea.innerHTML="";greeted=false;currentContext=null;lastBotMessage="";}
+</script>
+
+</body>
+</html>
+
