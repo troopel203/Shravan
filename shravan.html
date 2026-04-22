@@ -2,262 +2,432 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Shravan</title>
+<title>Shravan – Voice Assistant</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Lora:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
 <style>
-body{margin:0;font-family:'Poppins',sans-serif;background:#fbf7f2;height:100vh;display:flex;flex-direction:column;}
-header{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 10px 10px;position:relative;}
-.app-icon{width:140px;mix-blend-mode:multiply;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));margin-bottom:6px;}
-header h1{font-family:"Times New Roman",Times,serif;font-size:42px;color:#8b5e3c;margin:0;}
-.new-chat{position:absolute;left:20px;top:25px;}
-.new-chat button{font-size:16px;padding:8px 18px;border:none;border-radius:20px;background:#588157;color:white;}
-.lang-select{text-align:center;margin-top:10px;}
-select{font-size:18px;padding:6px 14px;border-radius:10px;border:1px solid #9c6644;}
-.main-area{flex:1;display:flex;align-items:center;justify-content:center;padding:20px;}
-.assistant-container{width:90%;max-width:1100px;background:#fff;border-radius:30px;display:flex;padding:30px;gap:30px;}
-.voice-section{flex:1;display:flex;flex-direction:column;align-items:center;}
-.instruction{font-size:18px;color:#6c584c;margin-bottom:15px;}
-.hidden{display:none;}
-.voice-box{width:100%;max-width:420px;background:#fff;border-radius:40px;padding:18px;display:flex;justify-content:center;box-shadow:0 4px 15px rgba(0,0,0,0.12);}
-.voice-box button{width:70px;height:70px;border-radius:50%;background:#9c6644;color:white;font-size:32px;}
-.chat-area{width:100%;margin-top:20px;display:flex;flex-direction:column;max-height:260px;overflow-y:auto;}
-.user-msg{align-self:flex-end;background:#2563eb;color:white;padding:14px;border-radius:18px;margin:6px;}
-.bot-msg{align-self:center;background:white;padding:16px;border-radius:18px;box-shadow:0 4px 12px rgba(0,0,0,0.12);margin:6px;white-space:pre-line;}
-.image-section{flex:1;display:flex;justify-content:center;}
-.image-section img{width:100%;max-width:320px;}
-.repeat-btn{
-  margin-top:10px;
-  padding:10px 20px;
-  border:none;
-  border-radius:20px;
-  background:#8b5e3c;
-  color:white;
-  font-size:16px;
-  cursor:pointer;
+:root{
+  --rose:     #f9d5d3;
+  --rose-mid: #f0a8a5;
+  --rose-deep:#c0605a;
+  --peach:    #fde8d0;
+  --peach-mid:#f5c49a;
+  --peach-deep:#c07840;
+  --mint:     #d4f0e4;
+  --mint-mid: #8fd3b3;
+  --mint-deep:#3a8c68;
+  --sky:      #d6eaf8;
+  --sky-mid:  #93c4e8;
+  --sky-deep: #3a7cad;
+  --lav:      #e8d6f5;
+  --lav-mid:  #c49ee8;
+  --lav-deep: #7a4aad;
+  --butter:   #fdf3c8;
+  --butter-mid:#f0d870;
+  --bg:       #fdf8f4;
+  --card:     #ffffff;
+  --text:     #3d2c28;
+  --muted:    #9a7e78;
+  --border:   rgba(200,160,140,0.2);
+  --shadow:   0 4px 24px rgba(180,100,80,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+.blob-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.blob{position:absolute;border-radius:60% 40% 55% 45%/45% 55% 40% 60%;animation:morph 12s ease-in-out infinite alternate;}
+.b1{width:420px;height:380px;background:rgba(249,213,211,.55);top:-100px;left:-120px;animation-duration:16s;}
+.b2{width:340px;height:320px;background:rgba(212,240,228,.55);top:40%;right:-100px;animation-duration:13s;animation-delay:-5s;}
+.b3{width:280px;height:260px;background:rgba(214,234,248,.45);bottom:-80px;left:20%;animation-duration:18s;animation-delay:-9s;}
+.b4{width:200px;height:200px;background:rgba(232,214,245,.45);bottom:10%;left:-60px;animation-duration:14s;animation-delay:-3s;}
+@keyframes morph{
+  0%{border-radius:60% 40% 55% 45%/45% 55% 40% 60%;transform:translate(0,0) scale(1);}
+  50%{border-radius:40% 60% 35% 65%/60% 35% 65% 40%;transform:translate(20px,15px) scale(1.04);}
+  100%{border-radius:55% 45% 60% 40%/35% 65% 35% 65%;transform:translate(-10px,25px) scale(.97);}
+}
+
+.page{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 32px;
+  background:rgba(253,248,244,.82);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-dot{
+  width:38px;height:38px;border-radius:14px;
+  background:linear-gradient(135deg,var(--rose-mid),var(--peach-mid));
+  display:flex;align-items:center;justify-content:center;font-size:19px;
+  box-shadow:0 3px 12px rgba(240,168,165,.5);
+  animation:dotBounce 3s ease-in-out infinite;
+}
+@keyframes dotBounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+.brand h1{font-family:'Lora',serif;font-size:24px;color:var(--text);letter-spacing:.5px;}
+.brand h1 span{color:var(--rose-deep);font-style:italic;}
+
+.hdr-right{display:flex;align-items:center;gap:10px;}
+.lang-wrap{
+  display:flex;align-items:center;gap:8px;background:var(--card);
+  border:1px solid var(--border);border-radius:40px;padding:7px 14px;
+  box-shadow:var(--shadow);
+}
+.lang-wrap label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
+.lang-wrap select{border:none;outline:none;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;}
+
+.new-btn{
+  display:flex;align-items:center;gap:6px;padding:8px 18px;border-radius:40px;
+  background:linear-gradient(135deg,var(--rose),var(--peach));
+  border:1px solid rgba(240,168,165,.5);
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--rose-deep);
+  cursor:pointer;transition:transform .2s,box-shadow .2s;
+  box-shadow:0 2px 10px rgba(240,168,165,.35);
+}
+.new-btn:hover{transform:translateY(-2px);box-shadow:0 5px 18px rgba(240,168,165,.45);}
+
+.dark-toggle{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--butter);border:1px solid var(--butter-mid);
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;cursor:pointer;transition:transform .3s;
+}
+.dark-toggle:hover{transform:rotate(20deg);}
+
+.hero{text-align:center;padding:36px 20px 20px;animation:fadeSlide .7s ease both;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--mint);border:1px solid var(--mint-mid);
+  border-radius:40px;padding:5px 16px;font-size:12px;font-weight:700;color:var(--mint-deep);
+  letter-spacing:.07em;text-transform:uppercase;margin-bottom:14px;
+}
+.badge-dot{width:7px;height:7px;border-radius:50%;background:var(--mint-deep);animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.hero h2{font-family:'Lora',serif;font-size:clamp(26px,4.5vw,44px);line-height:1.2;color:var(--text);margin-bottom:10px;}
+.hero h2 em{color:var(--rose-deep);font-style:italic;}
+.hero p{font-size:15px;color:var(--muted);max-width:420px;margin:0 auto;line-height:1.65;font-weight:600;}
+
+.main{flex:1;display:grid;grid-template-columns:1fr 360px;gap:20px;padding:20px 32px 40px;max-width:1160px;margin:0 auto;width:100%;}
+
+.mic-card{
+  background:var(--card);border:1px solid var(--border);border-radius:28px;
+  display:flex;flex-direction:column;align-items:center;padding:38px 24px 28px;gap:22px;
+  box-shadow:var(--shadow);animation:fadeSlide .7s .15s ease both;
+  position:relative;overflow:hidden;
+}
+.mic-card::after{
+  content:'';position:absolute;inset:0;border-radius:28px;
+  background:linear-gradient(145deg,rgba(249,213,211,.15) 0%,transparent 60%);
+  pointer-events:none;
+}
+
+.mic-stage{position:relative;display:flex;align-items:center;justify-content:center;}
+.ring{position:absolute;border-radius:50%;border:2px dashed rgba(240,168,165,.35);}
+.r1{width:116px;height:116px;}
+.r2{width:158px;height:158px;}
+.r3{width:200px;height:200px;}
+.recording .r1{animation:spin 6s linear infinite;}
+.recording .r2{animation:spin 10s linear infinite reverse;}
+.recording .r3{animation:spin 15s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+.mic-glow{display:none;}
+.recording .mic-glow{
+  display:block;position:absolute;width:90px;height:90px;border-radius:50%;
+  background:radial-gradient(circle,rgba(240,168,165,.7) 0%,transparent 70%);
+  animation:glowPulse 1s ease-in-out infinite;
+}
+@keyframes glowPulse{0%,100%{transform:scale(.9);opacity:.6;}50%{transform:scale(1.4);opacity:.2;}}
+
+.mic-btn{
+  width:80px;height:80px;border-radius:50%;
+  background:linear-gradient(145deg,var(--rose-mid),var(--peach-mid));
+  border:none;cursor:pointer;font-size:30px;position:relative;z-index:1;
+  box-shadow:0 6px 20px rgba(240,168,165,.55);transition:transform .2s,box-shadow .2s;
+}
+.mic-btn:hover{transform:scale(1.08);box-shadow:0 10px 28px rgba(240,168,165,.65);}
+.mic-btn.on{background:linear-gradient(145deg,#f0c4c4,#e89898);animation:btnPulse .9s ease-in-out infinite;}
+@keyframes btnPulse{0%,100%{box-shadow:0 6px 20px rgba(240,150,150,.4);}50%{box-shadow:0 6px 36px rgba(240,150,150,.8);}}
+
+.wave{display:flex;align-items:center;justify-content:center;gap:5px;height:34px;}
+.wave span{
+  display:block;width:5px;border-radius:5px;
+  background:linear-gradient(to top,var(--rose-mid),var(--peach-mid));height:6px;
+}
+.recording .wave span{animation:waveDance 1.1s ease-in-out infinite;}
+.wave span:nth-child(1){animation-delay:0s;}
+.wave span:nth-child(2){animation-delay:.1s;}
+.wave span:nth-child(3){animation-delay:.2s;}
+.wave span:nth-child(4){animation-delay:.3s;}
+.wave span:nth-child(5){animation-delay:.4s;}
+.wave span:nth-child(6){animation-delay:.3s;}
+.wave span:nth-child(7){animation-delay:.2s;}
+.wave span:nth-child(8){animation-delay:.1s;}
+@keyframes waveDance{0%,100%{height:5px;}50%{height:28px;}}
+
+.status-txt{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.04em;transition:color .3s;}
+.status-txt.live{color:var(--rose-deep);}
+
+.rpt-btn{
+  padding:11px 24px;border-radius:40px;background:var(--lav);border:1px solid var(--lav-mid);
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--lav-deep);cursor:pointer;
+  display:flex;align-items:center;gap:7px;transition:transform .2s,background .2s;
+}
+.rpt-btn:hover{background:var(--lav-mid);color:white;transform:translateY(-2px);}
+
+.chat-area{
+  width:100%;max-height:260px;overflow-y:auto;
+  display:flex;flex-direction:column;gap:10px;padding-right:4px;
+}
+.chat-area::-webkit-scrollbar{width:5px;}
+.chat-area::-webkit-scrollbar-thumb{background:var(--rose);border-radius:5px;}
+
+.msg{
+  padding:13px 16px;border-radius:18px;font-size:14px;line-height:1.6;font-weight:600;
+  max-width:88%;animation:msgPop .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes msgPop{from{opacity:0;transform:scale(.88) translateY(8px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.user-msg{align-self:flex-end;background:linear-gradient(135deg,var(--rose-mid),var(--peach-mid));color:var(--text);border-bottom-right-radius:4px;}
+.bot-msg{align-self:flex-start;background:var(--mint);border:1px solid var(--mint-mid);color:var(--text);white-space:pre-line;border-bottom-left-radius:4px;}
+
+.right-col{display:flex;flex-direction:column;gap:16px;}
+
+.feat-card,.topics-card{
+  background:var(--card);border:1px solid var(--border);border-radius:24px;padding:22px;box-shadow:var(--shadow);
+}
+.feat-card{animation:fadeSlide .7s .25s ease both;}
+.topics-card{animation:fadeSlide .7s .35s ease both;}
+
+.card-title{font-family:'Lora',serif;font-size:16px;color:var(--text);margin-bottom:14px;}
+
+.feat-list{display:flex;flex-direction:column;gap:9px;}
+.feat{
+  display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:14px;
+  background:var(--bg);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--muted);
+  transition:all .22s;cursor:default;
+}
+.feat:hover{background:var(--rose);border-color:var(--rose-mid);color:var(--rose-deep);transform:translateX(4px);}
+.feat-ic{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+
+.topic-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px;}
+.topic-btn{
+  padding:14px 10px;border-radius:16px;background:var(--bg);border:1.5px solid var(--border);
+  font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .22s;
+}
+.topic-btn .ico{font-size:22px;line-height:1;}
+.topic-btn:nth-child(1):hover{background:var(--rose);border-color:var(--rose-mid);color:var(--rose-deep);transform:translateY(-3px);}
+.topic-btn:nth-child(2):hover{background:var(--mint);border-color:var(--mint-mid);color:var(--mint-deep);transform:translateY(-3px);}
+.topic-btn:nth-child(3):hover{background:var(--sky);border-color:var(--sky-mid);color:var(--sky-deep);transform:translateY(-3px);}
+.topic-btn:nth-child(4):hover{background:var(--lav);border-color:var(--lav-mid);color:var(--lav-deep);transform:translateY(-3px);}
+.topic-btn:nth-child(5):hover{background:var(--peach);border-color:var(--peach-mid);color:var(--peach-deep);transform:translateY(-3px);}
+.topic-btn:nth-child(6):hover{background:var(--butter);border-color:var(--butter-mid);color:#8c6e10;transform:translateY(-3px);}
+
+body.dark{
+  --bg:#1e1916;--card:#2e2520;--text:#f5e8e0;--muted:#9a8880;
+  --border:rgba(120,80,70,.25);--shadow:0 4px 24px rgba(0,0,0,.3);
+}
+body.dark header{background:rgba(30,25,22,.85);}
+
+footer{text-align:center;padding:14px;font-size:11px;color:var(--muted);font-weight:600;border-top:1px solid var(--border);letter-spacing:.04em;}
+
+.toast{
+  position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(14px);
+  background:var(--mint-deep);color:white;padding:11px 22px;border-radius:40px;
+  font-size:13px;font-weight:700;opacity:0;transition:all .35s;pointer-events:none;z-index:999;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media(max-width:720px){
+  header{padding:14px 16px;}
+  .main{grid-template-columns:1fr;padding:14px 14px 30px;}
+  .brand h1{font-size:20px;}
+  .hero{padding:22px 14px 12px;}
 }
 </style>
 </head>
-
 <body>
 
+<div class="blob-wrap">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+</div>
+
+<div class="page">
+
 <header>
-  <img src="v.jpeg" class="app-icon">
-  <div class="new-chat"><button onclick="newChat()">➕ New Chat</button></div>
-  <h1>Shravan</h1>
+  <div class="brand">
+    <div class="brand-dot">🎙️</div>
+    <h1>Shra<span>van</span></h1>
+  </div>
+  <div class="hdr-right">
+    <div class="lang-wrap">
+      <label>Lang</label>
+      <select id="language">
+        <option value="en-IN">🇮🇳 English</option>
+        <option value="hi-IN">🇮🇳 हिंदी</option>
+        <option value="mr-IN">🇮🇳 मराठी</option>
+      </select>
+    </div>
+    <div class="dark-toggle" id="darkToggle">☀️</div>
+    <button class="new-btn" onclick="newChat()">✦ New Chat</button>
+  </div>
 </header>
 
-<div class="lang-select">
-<select id="language">
-<option value="en-IN">English</option>
-<option value="hi-IN">Hindi</option>
-<option value="mr-IN">Marathi</option>
-</select>
+<div class="hero">
+  <div class="hero-badge"><span class="badge-dot"></span>Voice · Multilingual · Elder-friendly</div>
+  <h2>Technology that <em>listens</em> to you</h2>
+  <p>Speak naturally in Marathi, Hindi, or English — Shravan guides you step by step.</p>
 </div>
 
-<div class="main-area">
-<div class="assistant-container">
-<div class="voice-section">
-<div class="instruction" id="instruction">Tap the microphone and speak slowly</div>
+<div class="main">
 
-<div class="voice-box">
-<button id="micBtn" onclick="toggleMic()">🎤</button>
+  <div class="mic-card" id="micCard">
+    <div class="status-txt" id="statusTxt">Tap the mic and speak slowly 🌸</div>
+    <div class="mic-stage">
+      <div class="mic-glow"></div>
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <button class="mic-btn" id="micBtn" onclick="toggleMic()">🎤</button>
+    </div>
+    <div class="wave" id="waveEl">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <button class="rpt-btn" onclick="repeatLast()">🔁 Repeat last answer</button>
+    <div class="chat-area" id="chatArea"></div>
+  </div>
+
+  <div class="right-col">
+    <div class="feat-card">
+      <div class="card-title">What Shravan can help with</div>
+      <div class="feat-list">
+        <div class="feat"><div class="feat-ic" style="background:var(--rose);">📱</div>Smartphone usage help</div>
+        <div class="feat"><div class="feat-ic" style="background:var(--mint);">🏦</div>Banking &amp; ATM guidance</div>
+        <div class="feat"><div class="feat-ic" style="background:var(--sky);">💬</div>WhatsApp &amp; video calls</div>
+        <div class="feat"><div class="feat-ic" style="background:var(--lav);">🌐</div>Marathi, Hindi &amp; English</div>
+      </div>
+    </div>
+    <div class="topics-card">
+      <div class="card-title">Quick topics</div>
+      <div class="topic-grid">
+        <button class="topic-btn" onclick="askTopic('camera')"><span class="ico">📷</span>Camera</button>
+        <button class="topic-btn" onclick="askTopic('gallery')"><span class="ico">🖼️</span>Gallery</button>
+        <button class="topic-btn" onclick="askTopic('whatsapp')"><span class="ico">💬</span>WhatsApp</button>
+        <button class="topic-btn" onclick="askTopic('videocall')"><span class="ico">📹</span>Video Call</button>
+        <button class="topic-btn" onclick="askTopic('atm')"><span class="ico">🏧</span>ATM Help</button>
+        <button class="topic-btn" onclick="askTopic('bank')"><span class="ico">🏦</span>Bank Help</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<button class="repeat-btn" onclick="repeatLast()">🔁 Repeat</button>
-
-<div class="chat-area" id="chatArea"></div>
+<footer>Shravan · Made with ❤️ by Vaidehi Edaki, Manasi Sonar &amp; Toshini Nimbarte · Engineering for Change Hackathon, Pune</footer>
 </div>
 
-<div class="image-section">
-<img src="t.jpeg">
-</div>
-</div>
-</div>
+<div class="toast" id="toast"></div>
 
 <script>
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = new SpeechRecognition();
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec; try{rec=new SR();}catch(e){}
+let isRec=false,greeted=false,ctx=null,lastReply='';
+speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices();
 
-let isRecording=false;
-let selectedLang="en-IN";
-let voices=[];
-let greeted=false;
-let currentContext=null;
-let lastBotMessage="";
+const micBtn=document.getElementById('micBtn');
+const micCard=document.getElementById('micCard');
+const statusTxt=document.getElementById('statusTxt');
+const chatArea=document.getElementById('chatArea');
 
-speechSynthesis.onvoiceschanged=()=>voices=speechSynthesis.getVoices();
-
-const micBtn=document.getElementById("micBtn");
-const instruction=document.getElementById("instruction");
-const chatArea=document.getElementById("chatArea");
-
-/* 🧠 KNOWLEDGE BASE (UNCHANGED) */
 const QA={
-
-hello:{
-"en-IN":"Hello. How may I help you?",
-"hi-IN":"नमस्ते। मैं आपकी कैसे मदद कर सकता हूँ?",
-"mr-IN":"नमस्कार। मी तुमची कशी मदत करू शकतो?"
-},
-
-camera:{
-"en-IN":"To click a photo:\n1. Open the Camera app.\n2. Hold the phone steady.\n3. Point the camera.\n4. Tap the round button.",
-"hi-IN":"फोटो लेने के लिए:\n1. कैमरा खोलें।\n2. फोन स्थिर रखें।\n3. कैमरा सामने रखें।\n4. गोल बटन दबाएँ।",
-"mr-IN":"फोटो काढण्यासाठी:\n1. कॅमेरा उघडा.\n2. फोन स्थिर धरा.\n3. कॅमेरा समोर ठेवा.\n4. गोल बटण दाबा."
-},
-
-gallery:{
-"en-IN":"To see your photos:\n1. Open Gallery.\n2. Photos are saved by date.\n3. Tap to view.",
-"hi-IN":"फोटो देखने के लिए:\n1. गैलरी खोलें।\n2. फोटो तारीख से मिलेंगी।\n3. टैप करें।",
-"mr-IN":"फोटो पाहण्यासाठी:\n1. गॅलरी उघडा.\n2. फोटो तारखेप्रमाणे असतात.\n3. टॅप करा."
-},
-
-videocall:{
-"en-IN":"To make a video call:\n1. Open WhatsApp.\n2. Open contact.\n3. Tap video icon.",
-"hi-IN":"वीडियो कॉल करने के लिए:\n1. व्हाट्सऐप खोलें।\n2. संपर्क खोलें।\n3. वीडियो आइकन दबाएँ।",
-"mr-IN":"व्हिडिओ कॉलसाठी:\n1. व्हॉट्सॲप उघडा.\n2. संपर्क उघडा.\n3. व्हिडिओ चिन्ह दाबा."
-},
-
-whatsapp:{
-"en-IN":"To send photo on WhatsApp:\n1. Open WhatsApp.\n2. Open chat.\n3. Tap clip icon.\n4. Choose Gallery.\n5. Send.",
-"hi-IN":"व्हाट्सऐप पर फोटो भेजने के लिए:\n1. व्हाट्सऐप खोलें।\n2. चैट खोलें।\n3. क्लिप दबाएँ।\n4. गैलरी चुनें।\n5. भेजें।",
-"mr-IN":"व्हॉट्सॲपवर फोटो पाठवण्यासाठी:\n1. व्हॉट्सॲप उघडा.\n2. चॅट उघडा.\n3. क्लिप दाबा.\n4. गॅलरी निवडा.\n5. पाठवा."
-},
-
-atm:{
-"en-IN":"ATM help options:\n1. Forgot PIN\n2. Card blocked\n3. Cash not received",
-"hi-IN":"ATM मदत:\n1. पिन विसरलात\n2. कार्ड ब्लॉक\n3. पैसे मिळाले नाहीत",
-"mr-IN":"ATM मदत:\n1. पिन विसरलात\n2. कार्ड ब्लॉक\n3. पैसे मिळाले नाहीत"
-},
-
-atmPin:{
-"en-IN":"ATM PIN reset:\n1. Visit bank.\n2. Carry Aadhaar.\n3. Reset PIN.",
-"hi-IN":"ATM पिन रीसेट:\n1. बैंक जाएँ।\n2. आधार लें।\n3. पिन रीसेट करें।",
-"mr-IN":"ATM पिन रीसेट:\n1. बँकेत जा.\n2. आधार घ्या.\n3. पिन रीसेट करा."
-},
-
-atmCard:{
-"en-IN":"ATM card blocked:\n1. Visit bank.\n2. Show ID.\n3. Card will start.",
-"hi-IN":"ATM कार्ड ब्लॉक:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. कार्ड चालू होगा।",
-"mr-IN":"ATM कार्ड ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. कार्ड सुरू होईल."
-},
-
-atmCash:{
-"en-IN":"Cash not received:\n1. Check SMS.\n2. Wait 24 hours.\n3. Amount will credit.",
-"hi-IN":"पैसे नहीं मिले:\n1. SMS देखें।\n2. 24 घंटे रुकें।\n3. पैसे आएँगे।",
-"mr-IN":"पैसे मिळाले नाहीत:\n1. SMS तपासा.\n2. 24 तास थांबा.\n3. पैसे येतील."
-},
-
-bank:{
-"en-IN":"Bank help:\n1. Account blocked\n2. Pension not credited",
-"hi-IN":"बैंक मदत:\n1. खाता बंद\n2. पेंशन नहीं आई",
-"mr-IN":"बँक मदत:\n1. खाते ब्लॉक\n2. पेन्शन नाही"
-},
-
-bankAccount:{
-"en-IN":"Account blocked:\n1. Visit bank.\n2. Show ID.\n3. Account activated.",
-"hi-IN":"खाता बंद:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. खाता चालू होगा।",
-"mr-IN":"खाते ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. खाते सुरू होईल."
-},
-
-bankPension:{
-"en-IN":"Pension not credited:\n1. Check passbook.\n2. Visit bank.",
-"hi-IN":"पेंशन नहीं आई:\n1. पासबुक देखें।\n2. बैंक जाएँ।",
-"mr-IN":"पेन्शन नाही:\n1. पासबुक तपासा.\n2. बँकेत जा."
-}
-
+  hello:{'en-IN':'Hello! How may I help you today? 😊','hi-IN':'नमस्ते! मैं आपकी कैसे मदद कर सकता हूँ?','mr-IN':'नमस्कार! मी तुमची कशी मदत करू शकतो?'},
+  camera:{'en-IN':'To click a photo:\n1. Open the Camera app.\n2. Hold the phone steady.\n3. Point it at what you want.\n4. Tap the big round button.','hi-IN':'फोटो लेने के लिए:\n1. कैमरा खोलें।\n2. फोन स्थिर रखें।\n3. सामने रखें।\n4. गोल बटन दबाएँ।','mr-IN':'फोटो काढण्यासाठी:\n1. कॅमेरा उघडा.\n2. फोन स्थिर धरा.\n3. कॅमेरा समोर ठेवा.\n4. गोल बटण दाबा.'},
+  gallery:{'en-IN':'To see your photos:\n1. Open the Gallery app.\n2. Photos are sorted by date.\n3. Tap any photo to view it.','hi-IN':'फोटो देखने के लिए:\n1. गैलरी खोलें।\n2. तारीख से मिलेंगी।\n3. टैप करें।','mr-IN':'फोटो पाहण्यासाठी:\n1. गॅलरी उघडा.\n2. तारखेप्रमाणे असतात.\n3. टॅप करा.'},
+  videocall:{'en-IN':'To make a video call:\n1. Open WhatsApp.\n2. Open your contact.\n3. Tap the video camera icon.','hi-IN':'वीडियो कॉल करने के लिए:\n1. व्हाट्सऐप खोलें।\n2. संपर्क खोलें।\n3. वीडियो आइकन दबाएँ।','mr-IN':'व्हिडिओ कॉलसाठी:\n1. व्हॉट्सॲप उघडा.\n2. संपर्क उघडा.\n3. व्हिडिओ चिन्ह दाबा.'},
+  whatsapp:{'en-IN':'To send a photo on WhatsApp:\n1. Open WhatsApp.\n2. Open the chat.\n3. Tap the paperclip icon.\n4. Choose Gallery.\n5. Select and tap Send.','hi-IN':'व्हाट्सऐप पर फोटो:\n1. व्हाट्सऐप खोलें।\n2. चैट खोलें।\n3. क्लिप दबाएँ।\n4. गैलरी चुनें।\n5. भेजें।','mr-IN':'व्हॉट्सॲपवर फोटो:\n1. व्हॉट्सॲप उघडा.\n2. चॅट उघडा.\n3. क्लिप दाबा.\n4. गॅलरी निवडा.\n5. पाठवा.'},
+  atm:{'en-IN':'ATM Help — please tell me your issue:\n1. Forgot PIN\n2. Card is blocked\n3. Cash not received','hi-IN':'ATM मदत:\n1. पिन भूल गए\n2. कार्ड ब्लॉक\n3. पैसे नहीं मिले','mr-IN':'ATM मदत:\n1. पिन विसरलात\n2. कार्ड ब्लॉक\n3. पैसे मिळाले नाहीत'},
+  atmPin:{'en-IN':'ATM PIN reset:\n1. Visit your nearest bank branch.\n2. Carry your Aadhaar card.\n3. Ask staff to reset your PIN.','hi-IN':'ATM पिन रीसेट:\n1. बैंक जाएँ।\n2. आधार लें।\n3. पिन रीसेट करें।','mr-IN':'ATM पिन रीसेट:\n1. बँकेत जा.\n2. आधार घ्या.\n3. पिन रीसेट करा.'},
+  atmCard:{'en-IN':'ATM card blocked:\n1. Visit your bank branch.\n2. Show your ID proof.\n3. They will activate your card.','hi-IN':'ATM कार्ड ब्लॉक:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. कार्ड चालू होगा।','mr-IN':'ATM कार्ड ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. कार्ड सुरू होईल.'},
+  atmCash:{'en-IN':'Cash not received:\n1. Check your SMS.\n2. Wait up to 24 hours.\n3. Amount will be credited back.','hi-IN':'पैसे नहीं मिले:\n1. SMS देखें।\n2. 24 घंटे रुकें।\n3. पैसे आएँगे।','mr-IN':'पैसे मिळाले नाहीत:\n1. SMS तपासा.\n2. 24 तास थांबा.\n3. पैसे येतील.'},
+  bank:{'en-IN':'Bank Help — please tell me:\n1. Account is blocked\n2. Pension not credited','hi-IN':'बैंक मदत:\n1. खाता बंद\n2. पेंशन नहीं आई','mr-IN':'बँक मदत:\n1. खाते ब्लॉक\n2. पेन्शन नाही'},
+  bankAccount:{'en-IN':'Account blocked:\n1. Visit your bank branch.\n2. Carry your ID proof.\n3. Account will be activated.','hi-IN':'खाता बंद:\n1. बैंक जाएँ।\n2. पहचान दें।\n3. खाता चालू होगा।','mr-IN':'खाते ब्लॉक:\n1. बँकेत जा.\n2. ओळख द्या.\n3. खाते सुरू होईल.'},
+  bankPension:{'en-IN':'Pension not credited:\n1. Check your passbook or SMS.\n2. Visit your bank branch for help.','hi-IN':'पेंशन नहीं आई:\n1. पासबुक देखें।\n2. बैंक जाएँ।','mr-IN':'पेन्शन नाही:\n1. पासबुक तपासा.\n2. बँकेत जा.'}
 };
+
+function getLang(){return document.getElementById('language').value;}
 
 function toggleMic(){
-selectedLang=document.getElementById("language").value;
-recognition.lang=selectedLang;
-if(!isRecording){
-isRecording=true;
-micBtn.style.background="#000";
-instruction.classList.add("hidden");
-recognition.start();
-}else{
-isRecording=false;
-micBtn.style.background="#9c6644";
-recognition.stop();
+  if(!rec){toast('Speech not supported in this browser');return;}
+  rec.lang=getLang();
+  if(!isRec){
+    isRec=true;micBtn.classList.add('on');micBtn.textContent='⏹';
+    micCard.classList.add('recording');
+    statusTxt.textContent='Listening… speak now 🎙️';statusTxt.classList.add('live');
+    rec.start();
+  } else stopMic();
 }
+function stopMic(){
+  isRec=false;micBtn.classList.remove('on');micBtn.textContent='🎤';
+  micCard.classList.remove('recording');
+  statusTxt.textContent='Tap the mic and speak slowly 🌸';statusTxt.classList.remove('live');
+  try{rec.stop();}catch(e){}
 }
-
-recognition.onresult=e=>{
-const text=e.results[0][0].transcript.toLowerCase();
-showUser(text);
-respond(text);
-};
+if(rec){
+  rec.onresult=e=>{const t=e.results[0][0].transcript.toLowerCase();addMsg(t,'user');respond(t);stopMic();};
+  rec.onerror=stopMic;
+  rec.onend=()=>{if(isRec)stopMic();};
+}
 
 function respond(text){
-let reply="";
-
-if(!greeted){
-reply=QA.hello[selectedLang];
-greeted=true;
-}
-else if(currentContext==="atm"){
-if(text.match(/pin|पिन/)) reply=QA.atmPin[selectedLang];
-else if(text.match(/card|कार्ड/)) reply=QA.atmCard[selectedLang];
-else if(text.match(/cash|पैसे/)) reply=QA.atmCash[selectedLang];
-currentContext=null;
-}
-else if(currentContext==="bank"){
-if(text.match(/account|खाता|खाते/)) reply=QA.bankAccount[selectedLang];
-else if(text.match(/pension|पेन्शन/)) reply=QA.bankPension[selectedLang];
-currentContext=null;
-}
-else if(text.match(/camera|photo|फोटो/)){
-reply=QA.camera[selectedLang];
-}
-else if(text.match(/gallery|गैलरी/)){
-reply=QA.gallery[selectedLang];
-}
-else if(text.match(/video|व्हिडिओ/)){
-reply=QA.videocall[selectedLang];
-}
-else if(text.match(/whatsapp|व्हाट्सॲप/)){
-reply=QA.whatsapp[selectedLang];
-}
-else if(text.match(/atm|एटीएम/)){
-reply=QA.atm[selectedLang];
-currentContext="atm";
-}
-else if(text.match(/bank|बैंक|बँक/)){
-reply=QA.bank[selectedLang];
-currentContext="bank";
-}
-else{
-reply=QA.hello[selectedLang];
+  const lang=getLang();let reply='';
+  if(!greeted){reply=QA.hello[lang];greeted=true;}
+  else if(ctx==='atm'){
+    if(text.match(/pin|पिन/))reply=QA.atmPin[lang];
+    else if(text.match(/card|कार्ड/))reply=QA.atmCard[lang];
+    else if(text.match(/cash|पैसे/))reply=QA.atmCash[lang];
+    ctx=null;
+  } else if(ctx==='bank'){
+    if(text.match(/account|खाता|खाते/))reply=QA.bankAccount[lang];
+    else if(text.match(/pension|पेन्शन/))reply=QA.bankPension[lang];
+    ctx=null;
+  } else if(text.match(/camera|photo|फोटो/))reply=QA.camera[lang];
+  else if(text.match(/gallery|गैलरी/))reply=QA.gallery[lang];
+  else if(text.match(/video|व्हिडिओ/))reply=QA.videocall[lang];
+  else if(text.match(/whatsapp|व्हाट्सॲप/))reply=QA.whatsapp[lang];
+  else if(text.match(/atm|एटीएम/)){reply=QA.atm[lang];ctx='atm';}
+  else if(text.match(/bank|बैंक|बँक/)){reply=QA.bank[lang];ctx='bank';}
+  else reply=QA.hello[lang];
+  setTimeout(()=>{addMsg(reply,'bot');lastReply=reply;speak(reply);},500);
 }
 
-setTimeout(()=>{
-showBot(reply);
-lastBotMessage = reply;
-speak(reply);
-},500);
+function askTopic(key){
+  greeted=true;
+  const labels={camera:'Camera help',gallery:'Gallery help',whatsapp:'WhatsApp help',videocall:'Video call help',atm:'ATM help',bank:'Bank help'};
+  addMsg(labels[key],'user');
+  if(key==='atm')ctx='atm'; if(key==='bank')ctx='bank';
+  const r=QA[key]?.[getLang()]||QA.hello[getLang()];
+  setTimeout(()=>{addMsg(r,'bot');lastReply=r;speak(r);},400);
 }
 
-function speak(text){
-const u=new SpeechSynthesisUtterance(text);
-u.lang=selectedLang;
-speechSynthesis.cancel();
-speechSynthesis.speak(u);
+function speak(t){const u=new SpeechSynthesisUtterance(t);u.lang=getLang();speechSynthesis.cancel();speechSynthesis.speak(u);}
+function repeatLast(){if(lastReply)speak(lastReply);}
+function addMsg(t,who){
+  const d=document.createElement('div');
+  d.className='msg '+(who==='user'?'user-msg':'bot-msg');
+  d.textContent=t;chatArea.appendChild(d);chatArea.scrollTop=chatArea.scrollHeight;
 }
+function newChat(){chatArea.innerHTML='';greeted=false;ctx=null;lastReply='';toast('New conversation started ✨');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-function repeatLast(){
-if(lastBotMessage){
-speak(lastBotMessage);
-}
-}
-
-function showUser(t){chatArea.innerHTML+=`<div class="user-msg">${t}</div>`;}
-function showBot(t){chatArea.innerHTML+=`<div class="bot-msg">${t}</div>`;}
-function newChat(){chatArea.innerHTML="";greeted=false;currentContext=null;lastBotMessage="";}
+document.getElementById('darkToggle').addEventListener('click',function(){
+  document.body.classList.toggle('dark');
+  this.textContent=document.body.classList.contains('dark')?'🌙':'☀️';
+});
 </script>
-
 </body>
 </html>
-
